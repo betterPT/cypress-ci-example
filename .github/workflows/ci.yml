@@ -21,17 +21,17 @@ name: Using Cypress GH Action
 on: push
 
 jobs:
-  single-run:
-    runs-on: ubuntu-18.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v1
-      - name: Cypress run
-        uses: cypress-io/github-action@v2
-        timeout-minutes: 10
-        with:
-          build: yarn build
-          start: yarn start
+  # single-run:
+  #   runs-on: ubuntu-18.04
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v1
+  #     - name: Cypress run
+  #       uses: cypress-io/github-action@v2
+  #       timeout-minutes: 10
+  #       with:
+  #         build: yarn build
+  #         start: yarn start
 
   # parallel-runs:
   #   name: Parallel 4x
@@ -89,6 +89,7 @@ jobs:
         uses: cypress-io/github-action@v2
         timeout-minutes: 10
         with:
+          build: yarn build
           record: true
           parallel: true
           group: Parallel 2x on ${{ matrix.os }}
