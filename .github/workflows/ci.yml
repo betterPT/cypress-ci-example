@@ -1,17 +1,99 @@
-name: Cypress Tests
+# name: Cypress Tests
 
-on: [push]
+# on: [push]
+
+# jobs:
+#   cypress-run:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v2
+#       # Install NPM dependencies, cache them correctly
+#       # and run all Cypress tests
+#       - name: Cypress run
+#         uses: cypress-io/github-action@v2
+#         with:
+#           build: yarn build
+#           start: yarn start
+
+name: Using Cypress GH Action
+
+on: push
 
 jobs:
-  cypress-run:
-    runs-on: ubuntu-latest
+  single-run:
+    runs-on: ubuntu-18.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-      # Install NPM dependencies, cache them correctly
-      # and run all Cypress tests
+        uses: actions/checkout@v1
       - name: Cypress run
         uses: cypress-io/github-action@v2
+        timeout-minutes: 10
         with:
           build: yarn build
           start: yarn start
+
+  parallel-runs:
+    name: Parallel 4x
+    runs-on: ubuntu-18.04
+    strategy:
+      # when one test fails, DO NOT cancel the other
+      # containers, because this will kill Cypress processes
+      # leaving the Dashboard hanging ...
+      # https://github.com/cypress-io/github-action/issues/48
+      fail-fast: false
+      matrix:
+        # run 4 copies of the current job in parallel
+        # the actual items in the array do not matter
+        # we just need to "force" GitHub CI to create 4 jobs
+        machines: [1, 2, 3, 4]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      # because of "record" and "parallel" parameters
+      # these containers will load balance all found tests among themselves
+      - name: run tests
+        uses: cypress-io/github-action@v2
+        timeout-minutes: 5
+        with:
+          record: true
+          parallel: true
+          group: GH Action parallel
+          start: yarn start
+        env:
+          # pass the Dashboard record key as an environment variable
+          CYPRESS_RECORD_KEY: ${{ secrets.dashboardRecordKey }}
+
+  parallel-runs-across-platforms:
+    name: every OS
+    strategy:
+      # when one test fails, DO NOT cancel the other
+      # containers, because this will kill Cypress processes
+      # leaving the Dashboard hanging ...
+      # https://github.com/cypress-io/github-action/issues/48
+      fail-fast: false
+      matrix:
+        # run 2 copies of the current job in parallel
+        # and they will load balance all specs
+        os: ['ubuntu-18.04', 'windows-latest', 'macos-latest']
+        machines: [1, 2]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      # because of "record" and "parallel" parameters
+      # these containers will load balance all found tests among themselves
+      - name: run tests
+        uses: cypress-io/github-action@v2
+        timeout-minutes: 10
+        with:
+          record: true
+          parallel: true
+          group: Parallel 2x on ${{ matrix.os }}
+          # on Mac and Linux we can use "npm start"
+          start: yarn start
+        env:
+          # pass the Dashboard record key as an environment variable
+          CYPRESS_RECORD_KEY: ${{ secrets.dashboardRecordKey }}
