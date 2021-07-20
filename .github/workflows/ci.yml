@@ -14,9 +14,13 @@ jobs:
       - name: Cypress run
         uses: cypress-io/github-action@v2
         with:
+          record: true
           build: yarn build
           start: yarn start
           browser: chrome
+        env:
+          # pass the Dashboard record key as an environment variable
+          CYPRESS_RECORD_KEY: ${{ secrets.dashboardRecordKey }}
 
 # name: Using Cypress GH Action
 
