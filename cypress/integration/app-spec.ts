@@ -6,6 +6,7 @@ describe('Google', function() {
     cy.visit('https://www.google.com') 
 });
 
+
 })
 describe("App", function() {
 
